@@ -1,10 +1,19 @@
 \documentclass{beamer}
-\usetheme{Berlin}
+% \usetheme{Madrid}
+\setbeamertemplate{caption}[numbered]
+% \setbeamertemplate{page number in head/foot}[framenumber]
+
+\setbeamertemplate{frametitle}[default][left]
+\setbeamercolor{page number in head/foot}{fg=black}
+\setbeamerfont{page number in head/foot}{size=\small}
+
+\setbeamertemplate{footline}[page number]
 
 \usepackage{datetime}
 \usepackage{amsmath}
+\usepackage[brazil]{babel}
 
-\title{Analysis of the Committeeless Proof-of-Stake protocol: searching for a better point of operation}
+\title{Análise do protocolo \textit{Committeeless Proof-of-Stake}: em busca de um melhor ponto de operação}
 \author{Vinícius Peixoto\inst{1} \and Marco Aurélio Amaral Henriques\inst{1}}
 \institute{\inst{1} Faculdade de Engenharia Elétrica e de Computação (FEEC) - Unicamp}
 \date{18 de Setembro de 2023}
@@ -15,6 +24,7 @@
 \section{Introdução}
 \subsection{O que são blockchains?}
 \begin{frame}
+\frametitle{O que são blockchains?}
 \begin{itemize}
     \item Livro-razão distribuído, imutável, aberto e descentralizado
     \item Unidade básica de dados: \textbf{bloco}
@@ -29,6 +39,7 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{O que são blockchains?}
 \begin{itemize}
     \item Blockchains como bancos de dados distribuídos: redes peer-to-peer
     \item Grande quantidade de nós na rede, porém \textbf{apenas um bloco por rodada}
@@ -39,50 +50,71 @@
 
 \subsection{Mecanismos de consenso}
 \begin{frame}
+\frametitle{Mecanismos de consenso}
+Mecanismos mais utilizados:
+
+\begin{itemize}
+    \item Proof-of-Work: Bitcoin, Litecoin, Monero, ...
+    \item Proof-of-Stake: Ethereum, BNB, Cardano, ...
+\end{itemize}
+
 Proof-of-Work (PoW):
 \begin{itemize}
     \item Solução de um problema computacionalmente caro
     \item Quem resolver primeiro publica o bloco
-    \item Encontrar $n$ tal que $h(n \parallel \text{block}) < 2^d$ ($d$ ajustável)
     \item Grande desperdício de energia: trabalho de todos os nós exceto o sorteado é jogado fora
 \end{itemize}
 \end{frame}
 
 \begin{frame}
+\frametitle{Mecanismos de consenso}
 Proof-of-Stake:
 \begin{itemize}
     \item Alternativa mais energeticamente eficiente ao PoW
-    \item Nós depositam uma quantidade de \textit{stake} para fazerem parte de um \textit{comitê de validação}
-    \item Um membro do comitê é sorteado a cada rodada para gerar um bloco
-    \item Membros fazem um processo de votação para validar e eleger o bloco
+    \item Nós investem \textit{stake} para se tornarem \textbf{validadores}
+    \item Validadores são sorteados para gerar blocos
+    \item Validadores divididos em \textbf{comitês de votação}
+    \item Comitês executam o protocolo de consenso e elegem blocos
 \end{itemize}
 \end{frame}
 
 \begin{frame}
+\frametitle{Mecanismos de consenso}
 \begin{itemize}
-    \item Problema: o comitê de validação é uma superfície de ataque
-    \item Foram propostos diversos ataques [Neuder 2021, Schwarz-Schilling 2022]
+    \item Problema:
+    \begin{itemize}
+        \item Centralização
+        \item Comitês de validação são superfícies de ataque
+    \end{itemize}
+    \item Diversos ataques propostos: [Neuder 2021], [Schwarz-Schilling 2022]
     \begin{itemize}
         \item Estima-se que organizações com menos de 1/3 do stake consigam comprometer o consenso
     \end{itemize}
-    \item \textbf{Pergunta}: é possível chegar a um consenso sem um comitê de validação?
+    \item Pergunta: é possível chegar ao consenso de forma \textbf{segura} e \textbf{descentralizada}?
 \end{itemize}
 \end{frame}
 
 \section{O mecanismo CPoS}
 \subsection{Visão geral}
 \begin{frame}
+\frametitle{O mecanismo CPoS}
 Committeeless Proof-of-Stake (CPoS): 
 \begin{itemize}
-    \item Ideia central: \textit{verifiable random functions} $\rightarrow$ sorteios determinísticos
-    \item Vários blocos gerados por rodada; critério determinístico de desambiguação
-    \item Todos os nós na rede são responsáveis por validar e propagar blocos
+    \item Eliminação da necessidade de um comitê
+    \item Trabalho de criação, propagação e validação
+          de nós é completamente distribuído
     \item Rede tenta convergir para um consenso de forma totalmente distribuída
 \end{itemize}
 \end{frame}
 
+\begin{frame}
+    \frametitle{O mecanismo CPoS}
+    \textbf{Este trabalho}: investigação preliminar da influência de parâmetros de configuração na segurança do protocolo
+\end{frame}
+
 \subsection{Mecanismo de sorteio}
 \begin{frame}
+\frametitle{Mecanismo de sorteio}
 Sorteio determinístico:
 \begin{itemize}
     \item Baseado no esquema Algorand [Gilad, 2017]
@@ -95,38 +127,52 @@ Sorteio determinístico:
 \end{frame}
 
 \begin{frame}
+\frametitle{Mecanismo de sorteio}
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{images/sortition.png}
+    \caption{Subdivisão de intervalos para nós com stakes diferentes.}
 \end{figure}
 \end{frame}
 
 \begin{frame}
+\frametitle{Mecanismo de sorteio}
 \begin{itemize}
     \item Seja $W = \sum w_i$ o \textit{stake} total na rede
-    \item É possível provar que o número esperado total de blocos gerados por rodada é dado por $\tau = p \times W$
-    \item Desse modo, $p$ é calculado a partir do parâmetro de configuração $\tau$
+    \item É possível provar que o número esperado \textbf{total de sorteios bem-sucedidos} por rodada é dado por $\tau = p \times W$
+    \pause
+    \item Parâmetro $\tau$: configura o número de blocos gerados por rodada
 \end{itemize}
 \end{frame}
 
-\subsection{Confirmação de blocos e identificação de forks}
+\subsection{Confirmação de blocos}
 \begin{frame}
-Confirmação de blocos:
+\frametitle{Confirmação de blocos}
 \begin{itemize}
-    \item Baseada nos blocos que chegam até um nó
-    \item O nó $i$ calcula, na rodadada $x$, o número total de sorteios bem-sucedidos nos blocos que recebeu: $s_{i}^{x}$
-    \item Se os outros peers na rede estão no mesmo fork que $i$, ele espera ver em média $\tau$ sorteios bem sucedidos por rodada
-    \item Nó calcula o número de sorteios médio: $ \bar{s} = \frac{1}{\Delta_r} \sum s_i^x$
-    \item Bloco confirmado quando $\bar{s}$ se torna suficientemente próximo de $\tau$
+    \item<1-> Processo probabilístico
+    \item<2-> Nós estimam um nível de confiança para cada bloco não-confirmado
+    \item<3-> Nível de confiança no bloco aumenta conforme chegam outros blocos
+              que descendem dele
 \end{itemize}
 \end{frame}
 
 \begin{frame}
+\frametitle{Confirmação de blocos}
+\begin{figure}
+    \centering
+    \includegraphics[height=0.6\textheight]{images/confirmation_fluxogram.png}
+    \caption{Fluxograma do algoritmo de confirmação de blocos.}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Confirmação de blocos}
+Mecanismo de confirmação: exige recebimento de blocos
+
 \begin{itemize}
-    \item O processo de confirmação exige que os nós recebam uma quantidade suficientemente grande de blocos
-    \item Contudo, o parâmetro $\tau$ controla o número total de blocos gerados
-    \item Além disso, um possível ataque: nós não divulgam blocos quando são sorteados
-    \item Investigação deste trabalho: \textbf{influência de $\tau$ na performance e resiliência da rede}
+    \item<1-> Parâmetro $\tau$ controla o número total de blocos gerados
+    \item<2-> Possível ataque: nós desonestos não divulgam blocos
+    \item<3-> \textbf{Investigação deste trabalho}: influência de $\tau$ na performance e segurança da rede
 
 \end{itemize}
 \end{frame}
@@ -134,13 +180,16 @@ Confirmação de blocos:
 \section{Resultados parciais}
 \subsection{Metodologia}
 \begin{frame}
+\frametitle{Experimentos}
 \begin{itemize}
+    \pause
     \item Experimento 1: influência de $\tau$ em uma rede saudável
     \begin{itemize}
         \item 25 peers no total
-        \item Cada peer conhece outros 5 peers
+        \item Cada peer conhece outros 5 peers aleatórios
         \item Peers honestos (divulgam blocos)
     \end{itemize}
+    \pause
     \item Experimento 2: influência de $\tau$ em uma rede desonesta
     \begin{itemize}
         \item 30 peers no total
@@ -151,53 +200,107 @@ Confirmação de blocos:
 \end{frame}
 
 \begin{frame}
+\frametitle{Experimentos}
 \begin{itemize}
-    \item Tempo de rodada de 5s
+    \item 50 rodadas no total
+    \item Média ao longo de 10 repetições de cada experimento
     \item Nós geram blocos vazios (somente headers)
-    \item Média de 10 execuções para cada experimento
     \item Infraestrutura de Docker, rodando no Linux 6.4, AMD Ryzen 7 3700X, 32GB RAM
     \item Código disponível em \url{https://github.com/regras/cpos_v2}
 \end{itemize}
 \end{frame}
 
 \subsection{Resultados}
+
 \begin{frame}
 \begin{figure}
+\frametitle{Resultados}
     \centering
-    \includegraphics[width=\textwidth]{images/results.png}
+    \includegraphics[width=0.8\textwidth]{images/test_honest_throughput_data.png}
+    \caption{Influência de $\tau$ numa rede CPoS honesta.}
 \end{figure}
+\end{frame}
     
+% \begin{frame}
+% \begin{figure}
+% \frametitle{Resultados}
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/test_honest_throughput.png}
+%     \caption{Influência de $\tau$ no \textit{throughput} (blocos/min) da rede CPoS honesta}
+% \end{figure}
+% \end{frame}
+%
+% \begin{frame}
+% \begin{figure}
+% \frametitle{Resultados}
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{images/test_honest_data_usage.png}
+%     \caption{Influência de $\tau$ no volume de dados na rede CPoS}
+% \end{figure}
+% \end{frame}
+
+\begin{frame}
+\begin{figure}
+\frametitle{Resultados}
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/test_adversarial.png}
+    \caption{Influência de $\tau$ no tempo de confirmação do CPoS em uma rede saudável vs. uma rede adversarial}
+\end{figure}
 \end{frame}
 
 \section{Conclusões e trabalhos futuros}
 \subsection{Conclusões}
 \begin{frame}
+\frametitle{Conclusões}
 \begin{itemize}
     \item Aumento de $\tau$:
+    \pause
         \begin{itemize}
-            \item Maior throughput, menor tempo de confirmação
-            \item Aumento da resiliência em presença de nós desonestos
-            \item Contudo: umento significativo no número de mensagens e total de dados em circulação
+            \item<1-> Maior throughput, menor tempo de confirmação
+            \item<2-> Aumento da resiliência em presença de nós desonestos
+            \item<3-> Contudo: aumento significativo no número de mensagens e total de dados em circulação
         \end{itemize}
-    \item Necessidade de encontrar um equilíbrio entre o valor de $\tau$ e o impacto na rede
+    \item<4-> Necessidade de encontrar um equilíbrio entre o valor de $\tau$ e o impacto na rede
         \begin{itemize}
-            \item Envio somente de headers até que a rede escolha um bloco; somente então divulgação de blocos ocorre
+            \item<5-> Envio somente de headers até que a rede escolha um bloco; somente então divulgação de blocos ocorre
         \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
+\frametitle{Conclusões}
 Trabalhos futuros:
 \begin{itemize}
     \item Polimentos e melhorias na implementação atual do CPoS
     \item Execução de testes mais extensivos (maior número de blocos, nós distribuídos geograficamente)
     \item Busca de estratégias para minimização do consumo de dados do protocolo
-    \item Desenvolvimento de estratégias para punição de nós desonestos
 \end{itemize}
 \end{frame}
 
 \begin{frame}
     Obrigado!
+    \begin{itemize}
+        \item Repositório do projeto: \url{https://github.com/regras/cpos_v2}
+        \item E-mail para contato: \texttt{nukelet64@gmail.com}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{images/results.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+Confirmação de blocos:
+\begin{itemize}
+    \item Baseada nos blocos que chegam até um nó
+    \item O nó $i$ calcula, na rodada $x$, o número total de sorteios bem-sucedidos nos blocos que recebeu: $s_{i}^{x}$
+    \item Se os outros peers na rede estão no mesmo fork que $i$, ele espera ver em média $\tau$ sorteios bem sucedidos por rodada
+    \item Nó calcula o número de sorteios médio: $ \bar{s} = \frac{1}{\Delta_r} \sum s_i^x$
+    \item Bloco confirmado quando $\bar{s}$ se torna suficientemente próximo de $\tau$
+\end{itemize}
 \end{frame}
 
 \end{document}
